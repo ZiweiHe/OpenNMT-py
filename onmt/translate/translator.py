@@ -325,6 +325,27 @@ class Translator(object):
 
         start_time = time.time()
 
+        ###############################################
+        if self.report_score:
+            msg = self._report_score('PRED', pred_score_total,
+                                     pred_words_total)
+            self._log(msg)
+            if tgt is not None:
+                msg = self._report_score('GOLD', gold_score_total,
+                                         gold_words_total)
+                self._log(msg)
+                if self.report_bleu:
+                    if tgt[0] == b'The host Toronto_Raptors defeated the Philadelphia_76ers , 122 - 95 , at Air Canada Center on Monday .\n':
+                        tgt_path = '/home/ziweihe/OpenNMT-py/data/rotowire_processed/valid-tgt.txt'
+                    else:
+                        raise NotImplementedError("not implemented.")
+                    msg = self._report_bleu(tgt_path)
+                    self._log(msg)
+                if self.report_rouge:
+                    msg = self._report_rouge(tgt_path)
+                    self._log(msg)
+        ###############################################
+
         for batch in data_iter:
             batch_data = self.translate_batch(
                 batch, data.src_vocabs, attn_debug
@@ -827,6 +848,7 @@ class Translator(object):
         # Rollback pointer to the beginning.
         self.out_file.seek(0)
         print()
+        # import pdb; pdb.set_trace()
 
         res = subprocess.check_output(
             "perl %s/tools/multi-bleu.perl %s" % (base_dir, tgt_path),
